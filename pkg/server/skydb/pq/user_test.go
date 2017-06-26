@@ -37,7 +37,7 @@ func TestUserCRUD(t *testing.T) {
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Roles:          []string{},
-			Auth: skydb.AuthInfo{
+			ProviderInfo: skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -92,7 +92,7 @@ func TestUserCRUD(t *testing.T) {
 
 			So(email, ShouldEqual, "john.doe@example.com")
 			So(password, ShouldResemble, []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"))
-			So(auth.AuthInfo, ShouldResemble, skydb.AuthInfo{
+			So(auth.ProviderInfo, ShouldResemble, skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,

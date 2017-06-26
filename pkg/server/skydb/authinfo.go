@@ -47,7 +47,7 @@ type AuthInfo struct {
 	Email           string       `json:"email,omitempty"`
 	HashedPassword  []byte       `json:"password,omitempty"`
 	Roles           []string     `json:"roles,omitempty"`
-	Auth            ProviderInfo `json:"auth,omitempty"` // auth data for alternative methods
+	ProviderInfo    ProviderInfo `json:"provider_info,omitempty"` // auth data for alternative methods
 	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
 	LastLoginAt     *time.Time   `json:"last_login_at,omitempty"`
 	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
@@ -81,7 +81,7 @@ func NewAnonymousAuthInfo() AuthInfo {
 func NewProviderInfoAuthInfo(principalID string, authData map[string]interface{}) AuthInfo {
 	return AuthInfo{
 		ID: uuid.New(),
-		Auth: ProviderInfo(map[string]map[string]interface{}{
+		ProviderInfo: ProviderInfo(map[string]map[string]interface{}{
 			principalID: authData,
 		}),
 	}
@@ -110,10 +110,10 @@ func (info AuthInfo) IsSamePassword(password string) bool {
 
 // SetProviderInfoData sets the auth data to the specified principal.
 func (info *AuthInfo) SetProviderInfoData(principalID string, authData map[string]interface{}) {
-	if info.Auth == nil {
-		info.Auth = make(map[string]map[string]interface{})
+	if info.ProviderInfo == nil {
+		info.ProviderInfo = make(map[string]map[string]interface{})
 	}
-	info.Auth[principalID] = authData
+	info.ProviderInfo[principalID] = authData
 }
 
 // HasAnyRoles return true if authinfo belongs to one of the supplied roles
@@ -128,16 +128,16 @@ func (info *AuthInfo) HasAllRoles(roles []string) bool {
 
 // GetProviderInfoData gets the auth data for the specified principal.
 func (info *AuthInfo) GetProviderInfoData(principalID string) map[string]interface{} {
-	if info.Auth == nil {
+	if info.ProviderInfo == nil {
 		return nil
 	}
-	value, _ := info.Auth[principalID]
+	value, _ := info.ProviderInfo[principalID]
 	return value
 }
 
 // RemoveProviderInfoData remove the auth data for the specified principal.
 func (info *AuthInfo) RemoveProviderInfoData(principalID string) {
-	if info.Auth != nil {
-		delete(info.Auth, principalID)
+	if info.ProviderInfo != nil {
+		delete(info.ProviderInfo, principalID)
 	}
 }
