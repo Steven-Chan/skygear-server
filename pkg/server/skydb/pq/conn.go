@@ -30,37 +30,37 @@ import (
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-// authInfoValue implements sql.Valuer and sql.Scanner s.t.
-// skydb.AuthInfo can be saved into and recovered from postgresql
-type authInfoValue struct {
-	AuthInfo skydb.AuthInfo
-	Valid    bool
+// providerInfoValue implements sql.Valuer and sql.Scanner s.t.
+// skydb.ProviderInfo can be saved into and recovered from postgresql
+type providerInfoValue struct {
+	ProviderInfo skydb.ProviderInfo
+	Valid        bool
 }
 
-func (auth authInfoValue) Value() (driver.Value, error) {
+func (auth providerInfoValue) Value() (driver.Value, error) {
 	if !auth.Valid {
 		return nil, nil
 	}
 
 	b := bytes.Buffer{}
-	if err := json.NewEncoder(&b).Encode(auth.AuthInfo); err != nil {
+	if err := json.NewEncoder(&b).Encode(auth.ProviderInfo); err != nil {
 		return nil, err
 	}
 
 	return b.Bytes(), nil
 }
 
-func (auth *authInfoValue) Scan(value interface{}) error {
+func (auth *providerInfoValue) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
 
 	b, ok := value.([]byte)
 	if !ok {
-		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.AuthInfo)
+		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.ProviderInfo)
 	}
 
-	err := json.Unmarshal(b, &auth.AuthInfo)
+	err := json.Unmarshal(b, &auth.ProviderInfo)
 	if err == nil {
 		auth.Valid = true
 	}
@@ -218,5 +218,5 @@ var (
 	_ skydb.Conn     = &conn{}
 	_ skydb.Database = &database{}
 
-	_ driver.Valuer = authInfoValue{}
+	_ driver.Valuer = providerInfoValue{}
 )

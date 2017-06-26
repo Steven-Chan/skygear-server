@@ -822,7 +822,7 @@ func TestSchemaDefaultAccessPayload(t *testing.T) {
 			So(skyErr, ShouldBeNil)
 			So(payload.Validate(), ShouldBeNil)
 
-			admin := skydb.UserInfo{
+			admin := skydb.AuthInfo{
 				Roles: []string{"admin"},
 			}
 			So(payload.ACL.Accessible(&admin, skydb.WriteLevel), ShouldEqual, true)
@@ -914,7 +914,7 @@ func TestSchemaDefaultAccessHandler(t *testing.T) {
 
 		So(mockConn.recordType, ShouldEqual, "script")
 
-		admin := skydb.UserInfo{
+		admin := skydb.AuthInfo{
 			Roles: []string{"admin"},
 		}
 		So(mockConn.acl.Accessible(&admin, skydb.WriteLevel), ShouldEqual, true)

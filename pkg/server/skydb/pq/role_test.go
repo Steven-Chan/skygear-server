@@ -29,18 +29,18 @@ func TestRoleCRUD(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		Convey("add roles to a user", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID:       "userid",
 				Username: "john.doe",
 				Email:    "john.doe@example.com",
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
-			userinfo.Roles = []string{
+			authinfo.Roles = []string{
 				"admin",
 				"writer",
 			}
-			err = c.UpdateUserRoles(&userinfo)
+			err = c.UpdateUserRoles(&authinfo)
 			So(err, ShouldBeNil)
 
 			var role string
@@ -61,21 +61,21 @@ func TestRoleCRUD(t *testing.T) {
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(roles, ShouldResemble, userinfo.Roles)
+			So(roles, ShouldResemble, authinfo.Roles)
 		})
 
 		Convey("clear roles of a user keep the role definition", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 				Roles: []string{
 					"admin",
 					"writer",
 				},
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
-			userinfo.Roles = nil
-			err = c.UpdateUserRoles(&userinfo)
+			authinfo.Roles = nil
+			err = c.UpdateUserRoles(&authinfo)
 			So(err, ShouldBeNil)
 
 			var role string
