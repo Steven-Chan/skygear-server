@@ -101,12 +101,10 @@ func TestRoleAssignRevoke(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		Convey("assign roles to user without roles", func() {
-			userinfo := skydb.UserInfo{
-				ID:       "userid",
-				Username: "john.doe",
-				Email:    "john.doe@example.com",
+			authinfo := skydb.AuthInfo{
+				ID: "userid",
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateAuth(&authinfo)
 			roles := []string{
 				"admin",
 				"user",
@@ -114,7 +112,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 			err = c.AssignRoles([]string{
 				"userid",
 			}, roles)
-			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid'")
 			So(err, ShouldBeNil)
 			result := []string{}
 			var role string
@@ -126,21 +124,21 @@ func TestRoleAssignRevoke(t *testing.T) {
 		})
 
 		Convey("assign roles to users with existing roles", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 				Roles: []string{
 					"admin",
 				},
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
-			userinfo = skydb.UserInfo{
+			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 				Roles: []string{
 					"user",
 				},
 			}
-			err = c.CreateUser(&userinfo)
+			err = c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
 			roles := []string{
@@ -153,7 +151,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 			}, roles)
 			So(err, ShouldBeNil)
 			rows, err := c.Queryx(
-				"SELECT * FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+				"SELECT * FROM _auth_role WHERE auth_id IN ( 'userid', 'userid2' )")
 			So(err, ShouldBeNil)
 			count := 0
 			for rows.Next() {
@@ -167,15 +165,15 @@ func TestRoleAssignRevoke(t *testing.T) {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 		Convey("revoke roles from users with a role", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 				Roles: []string{
 					"admin",
 					"user",
 				},
 			}
-			err := c.CreateUser(&userinfo)
-			userinfo = skydb.UserInfo{
+			err := c.CreateAuth(&authinfo)
+			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 				Roles: []string{
 					"user",
@@ -191,17 +189,17 @@ func TestRoleAssignRevoke(t *testing.T) {
 				"userid2",
 			}, roles)
 			rows, err := c.Queryx(
-				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+				"SELECT role_id FROM _auth_role WHERE auth_id IN ( 'userid', 'userid2' )")
 			So(err, ShouldBeNil)
 			So(rows.Next(), ShouldBeFalse)
 		})
 
 		Convey("revoke roles from users without a role", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 			}
-			err := c.CreateUser(&userinfo)
-			userinfo = skydb.UserInfo{
+			err := c.CreateAuth(&authinfo)
+			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 			}
 
@@ -214,7 +212,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 				"userid2",
 			}, roles)
 			rows, err := c.Queryx(
-				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+				"SELECT role_id FROM _auth_role WHERE auth_id IN ( 'userid', 'userid2' )")
 			So(err, ShouldBeNil)
 			So(rows.Next(), ShouldBeFalse)
 		})

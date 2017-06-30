@@ -220,7 +220,7 @@ func (acl FieldACL) Accessible(
 // FieldACLIterator iterates FieldACL to find a list of rules that apply
 // to the specified record type and record field.
 //
-// The iterator does not consider the access mode, the UserInfo and the Record
+// The iterator does not consider the access mode, the AuthInfo and the Record
 // of individual access. So the result is always the same as long as the
 // FieldACL setting is unchanged. The list of rules can then be considered
 // one by one, which is specific to each individual request.
@@ -456,11 +456,11 @@ func (r FieldUserRole) Match(authinfo *AuthInfo, record *Record) bool {
 
 	switch r.Type {
 	case OwnerFieldUserRoleType:
-		return record.OwnerID == userinfo.ID
+		return record.OwnerID == authinfo.ID
 	case SpecificUserFieldUserRoleType:
 		return authinfo.ID == r.Data
 	case DynamicUserFieldUserRoleType:
-		return r.matchDynamic(userinfo, record)
+		return r.matchDynamic(authinfo, record)
 	case DefinedRoleFieldUserRoleType:
 		for _, role := range authinfo.Roles {
 			if role == r.Data {
@@ -477,15 +477,15 @@ func (r FieldUserRole) Match(authinfo *AuthInfo, record *Record) bool {
 
 // matchDynamic is a helper function for returning whether the
 // field user role with dynamic user field type matches the specified
-// UserInfo and Record.
-func (r FieldUserRole) matchDynamic(userInfo *UserInfo, record *Record) bool {
+// AuthInfo and Record.
+func (r FieldUserRole) matchDynamic(authInfo *AuthInfo, record *Record) bool {
 	dynamicFieldName := r.Data
 	switch fieldVal := record.Get(dynamicFieldName).(type) {
 	case string:
-		return userInfo.ID == fieldVal
+		return authInfo.ID == fieldVal
 	case []interface{}:
 		for _, item := range fieldVal {
-			if userID, ok := item.(string); ok && userID == userInfo.ID {
+			if userID, ok := item.(string); ok && userID == authInfo.ID {
 				return true
 			}
 		}

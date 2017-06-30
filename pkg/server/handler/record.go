@@ -556,11 +556,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	visitor := &queryAccessVisitor{
 		FieldACL:   fieldACL,
 		RecordType: p.Query.Type,
-		UserInfo:   p.Query.ViewAsUser,
+		AuthInfo:   p.Query.ViewAsUser,
 		ExpressionACLChecker: ExpressionACLChecker{
 			FieldACL:   fieldACL,
 			RecordType: p.Query.Type,
-			UserInfo:   payload.UserInfo,
+			AuthInfo:   payload.AuthInfo,
 			Database:   payload.Database,
 		},
 	}
