@@ -23,7 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
-// AuthInfo represents the dictionary of authenticated principal ID => authData.
+// ProviderInfo represents the dictionary of authenticated principal ID => authData.
 //
 // For example, a UserInfo connected with a Facebook account might
 // look like this:
@@ -38,19 +38,19 @@ import (
 //
 // It is assumed that the Facebook AuthProvider has "com.facebook" as
 // provider name and "46709394" as the authenticated Facebook account ID.
-type AuthInfo map[string]map[string]interface{}
+type ProviderInfo map[string]map[string]interface{}
 
 // UserInfo contains a user's information for authentication purpose
 type UserInfo struct {
-	ID              string     `json:"_id"`
-	Username        string     `json:"username,omitempty"`
-	Email           string     `json:"email,omitempty"`
-	HashedPassword  []byte     `json:"password,omitempty"`
-	Roles           []string   `json:"roles,omitempty"`
-	Auth            AuthInfo   `json:"auth,omitempty"` // auth data for alternative methods
-	TokenValidSince *time.Time `json:"token_valid_since,omitempty"`
-	LastLoginAt     *time.Time `json:"last_login_at,omitempty"`
-	LastSeenAt      *time.Time `json:"last_seen_at,omitempty"`
+	ID              string       `json:"_id"`
+	Username        string       `json:"username,omitempty"`
+	Email           string       `json:"email,omitempty"`
+	HashedPassword  []byte       `json:"password,omitempty"`
+	Roles           []string     `json:"roles,omitempty"`
+	Auth            ProviderInfo `json:"auth,omitempty"` // auth data for alternative methods
+	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
+	LastLoginAt     *time.Time   `json:"last_login_at,omitempty"`
+	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
 }
 
 // NewUserInfo returns a new UserInfo with specified username, email and
@@ -81,7 +81,7 @@ func NewAnonymousUserInfo() UserInfo {
 func NewProvidedAuthUserInfo(principalID string, authData map[string]interface{}) UserInfo {
 	return UserInfo{
 		ID: uuid.New(),
-		Auth: AuthInfo(map[string]map[string]interface{}{
+		Auth: ProviderInfo(map[string]map[string]interface{}{
 			principalID: authData,
 		}),
 	}

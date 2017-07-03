@@ -194,7 +194,7 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 	userinfo.Username = username.String
 	userinfo.Email = email.String
 	userinfo.HashedPassword = password
-	userinfo.Auth = auth.AuthInfo
+	userinfo.Auth = auth.ProviderInfo
 	if tokenValidSince.Valid {
 		userinfo.TokenValidSince = &tokenValidSince.Time
 	} else {

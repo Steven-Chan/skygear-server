@@ -121,7 +121,7 @@ func TestGetSetProvidedAuthData(t *testing.T) {
 
 		Convey("Test nonexistent Get Provided Auth", func() {
 			info := UserInfo{
-				Auth: AuthInfo{},
+				Auth: ProviderInfo{},
 			}
 
 			So(info.GetProvidedAuthData(k), ShouldBeNil)
@@ -129,7 +129,7 @@ func TestGetSetProvidedAuthData(t *testing.T) {
 
 		Convey("Test Get Provided Auth", func() {
 			info := UserInfo{
-				Auth: AuthInfo(map[string]map[string]interface{}{
+				Auth: ProviderInfo(map[string]map[string]interface{}{
 					k: v,
 				}),
 			}
@@ -139,7 +139,7 @@ func TestGetSetProvidedAuthData(t *testing.T) {
 
 		Convey("Test Remove Provided Auth", func() {
 			info := UserInfo{
-				Auth: AuthInfo(map[string]map[string]interface{}{
+				Auth: ProviderInfo(map[string]map[string]interface{}{
 					k: v,
 				}),
 			}
