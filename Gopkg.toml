@@ -72,6 +72,10 @@ required = [
   revision = "b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5"
 
 [[constraint]]
+  name = "github.com/gorilla/handlers"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/jarcoal/httpmock"
   revision = "4442edb3db31196622da56482fd8d0fa375fba4d"
 
