@@ -55,10 +55,12 @@ func main() {
 	// prepare handlers
 	meHandler := handler.MeHandler{}
 	loginHandler := handler.LoginHandler{}
+	configHandler := handler.ConfigHandler{}
 
 	injector.Provide(
 		&inject.Object{Value: &meHandler},
 		&inject.Object{Value: &loginHandler},
+		&inject.Object{Value: &configHandler},
 	)
 	if err := injector.Populate(); err != nil {
 		panic(err)
@@ -71,12 +73,15 @@ func main() {
 		serveMux := http.NewServeMux()
 
 		baseMiddleware := middleware.ChainMiddleware(
+			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
 			userRecordMiddleware.Handle,
 		)
 		serveMux.Handle("/me", baseMiddleware(meHandler))
+		serveMux.Handle("/config", baseMiddleware(configHandler))
 
 		authMiddleware := middleware.ChainMiddleware(
+			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
 		)
 		serveMux.Handle("/auth/login", authMiddleware(loginHandler))
@@ -90,6 +95,7 @@ func main() {
 
 		r.Use(handlers.RecoveryHandler())
 		r.Handle("/me", userRecordMiddleware.Handle(meHandler))
+		r.Handle("/config", configHandler)
 
 		authR := r.PathPrefix("/auth").Subrouter()
 		authR.Handle("/login", loginHandler)
@@ -125,6 +131,7 @@ func main() {
 			userRecordMiddleware.Handle,
 		)
 		r.POST("/me", wrapHandler(baseMiddleware(meHandler)))
+		r.POST("/config", wrapHandler(baseMiddleware(configHandler)))
 
 		authMiddleware := middleware.ChainMiddleware(
 			LoggingMiddleware{}.Handle,
