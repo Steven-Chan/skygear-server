@@ -11,6 +11,16 @@ Please install dependencies at the top leve of `skygear-server`.
 Configration can be set through environment variable.
 
 - `IMPL`: `net/http`, `gorilla`, `httprouter`
+- `GO_ENV`: `dev`, `production`
+
+If env is `dev`, the following environment variable can also be set.
+
+- `AUTH_PASSWORD_LENGTH`
+- `RECORD_AUTO_MIGRATION`
+- `ASSET_STORE_IMPL`
+- `ASSET_STORE_SECRET`
+
+This is list may not be the most updated, please see `/cmd/skynext-router/mode/config`.
 
 #### Run the program
 
@@ -32,7 +42,7 @@ This codebase is divided into the following parts:
 
 #### TODO
 
-- Demo using different golang web frameworks or router libraries
+- ~~Demo using different golang web frameworks or router libraries~~
 - Restrict the use of request context in middleware
 - Generate model getter and setter functions
 - Generate `http.handler` from a custom handler with life cycle (e.g. decode, validation, bussinuess logic, err handling, encode)

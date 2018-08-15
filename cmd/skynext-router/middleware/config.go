@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/cmd/skynext-router/model"
@@ -31,7 +30,6 @@ func (a ConfigMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appName := model.GetAppName(r)
 		config := configMap[appName]
-		fmt.Printf("config: %+v", config)
 		model.SetConfig(r, config)
 		next.ServeHTTP(w, r)
 	})

@@ -32,6 +32,8 @@ func init() {
 }
 
 func main() {
+	env := os.Getenv("GO_ENV")
+
 	injector := inject.Graph{}
 	injector.Provide(
 		&inject.Object{
@@ -48,8 +50,16 @@ func main() {
 
 	// prepare middleware
 	userRecordMiddleware := middleware.UserRecordMiddleware{}
+	var configMiddleware middleware.Middleware
+	if env == "dev" {
+		configMiddleware = middleware.ConfigMiddleware{}
+	} else {
+		configMiddleware = middleware.NoOpMiddleware{}
+	}
+
 	injector.Provide(
 		&inject.Object{Value: &userRecordMiddleware},
+		&inject.Object{Value: &configMiddleware},
 	)
 
 	// prepare handlers
@@ -75,6 +85,7 @@ func main() {
 		baseMiddleware := middleware.ChainMiddleware(
 			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
+			configMiddleware.Handle,
 			userRecordMiddleware.Handle,
 		)
 		serveMux.Handle("/me", baseMiddleware(meHandler))
@@ -83,6 +94,7 @@ func main() {
 		authMiddleware := middleware.ChainMiddleware(
 			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
+			configMiddleware.Handle,
 		)
 		serveMux.Handle("/auth/login", authMiddleware(loginHandler))
 
@@ -93,7 +105,9 @@ func main() {
 	case "gorilla":
 		r := mux.NewRouter()
 
+		r.Use(LoggingMiddleware{}.Handle)
 		r.Use(handlers.RecoveryHandler())
+		r.Use(configMiddleware.Handle)
 		r.Handle("/me", userRecordMiddleware.Handle(meHandler))
 		r.Handle("/config", configHandler)
 
@@ -128,6 +142,7 @@ func main() {
 		baseMiddleware := middleware.ChainMiddleware(
 			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
+			configMiddleware.Handle,
 			userRecordMiddleware.Handle,
 		)
 		r.POST("/me", wrapHandler(baseMiddleware(meHandler)))
@@ -136,6 +151,7 @@ func main() {
 		authMiddleware := middleware.ChainMiddleware(
 			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
+			configMiddleware.Handle,
 		)
 		r.POST("/auth/login", wrapHandler(authMiddleware(loginHandler)))
 

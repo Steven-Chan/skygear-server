@@ -1,6 +1,7 @@
 package model
 
 import (
+	"os"
 	"strconv"
 )
 
@@ -10,17 +11,46 @@ type Config struct {
 	AssetStore AssetStoreConfig
 }
 
+func (c *Config) ReadFromEnv() {
+	c.Auth.ReadFromEnv()
+	c.Record.ReadFromEnv()
+	c.AssetStore.ReadFromEnv()
+}
+
 type AuthConfig struct {
-	PasswordLength int
+	PasswordLength int `json:"password_length"`
+}
+
+func (c *AuthConfig) ReadFromEnv() {
+	pl, err := strconv.Atoi(os.Getenv("AUTH_PASSWORD_LENGTH"))
+	if err == nil {
+		c.PasswordLength = pl
+	} else {
+		c.PasswordLength = 0
+	}
 }
 
 type RecordConfig struct {
 	AutoMigration bool
 }
 
+func (c *RecordConfig) ReadFromEnv() {
+	am, err := strconv.ParseBool(os.Getenv("RECORD_AUTO_MIGRATION"))
+	if err == nil {
+		c.AutoMigration = am
+	} else {
+		c.AutoMigration = false
+	}
+}
+
 type AssetStoreConfig struct {
 	Impl   string
 	Secret string
+}
+
+func (c *AssetStoreConfig) ReadFromEnv() {
+	c.Impl = os.Getenv("ASSET_STORE_IMPL")
+	c.Secret = os.Getenv("ASSET_STORE_SECRET")
 }
 
 func SetConfig(i interface{}, config Config) {
