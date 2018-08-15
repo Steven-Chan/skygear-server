@@ -238,6 +238,14 @@
   version = "v4.2.1"
 
 [[projects]]
+  digest = "1:3c818dada3e41bdb0f509f78e6775610f1bb179449ec8c4c86a45fae35460f3f"
+  name = "github.com/julienschmidt/httprouter"
+  packages = ["."]
+  pruneopts = ""
+  revision = "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
+  version = "v1.1"
+
+[[projects]]
   branch = "master"
   digest = "1:11b056b4421396ab14e384ab8ab8c2079b03f1e51aa5eb4d9b81f9e0d1aa8fbf"
   name = "github.com/kr/text"
@@ -536,6 +544,7 @@
     "github.com/jarcoal/httpmock",
     "github.com/jmoiron/sqlx",
     "github.com/joho/godotenv",
+    "github.com/julienschmidt/httprouter",
     "github.com/kr/text",
     "github.com/lann/squirrel",
     "github.com/lib/pq",

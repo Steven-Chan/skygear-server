@@ -6,6 +6,12 @@ This folder contains demo code for skygear next.
 
 Please install dependencies at the top leve of `skygear-server`.
 
+#### Configuration
+
+Configration can be set through environment variable.
+
+- `IMPL`: `net/http`, `gorilla`, `httprouter`
+
 #### Run the program
 
 Run `go run main.go`
