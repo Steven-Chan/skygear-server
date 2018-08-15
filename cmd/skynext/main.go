@@ -120,12 +120,14 @@ func main() {
 		r := httprouter.New()
 
 		baseMiddleware := middleware.ChainMiddleware(
+			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
 			userRecordMiddleware.Handle,
 		)
 		r.POST("/me", wrapHandler(baseMiddleware(meHandler)))
 
 		authMiddleware := middleware.ChainMiddleware(
+			LoggingMiddleware{}.Handle,
 			handlers.RecoveryHandler(),
 		)
 		r.POST("/auth/login", wrapHandler(authMiddleware(loginHandler)))
@@ -165,4 +167,10 @@ func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	fmt.Fprintf(w, "Hello %s from %s!\n", ps.ByName("name"), user.Username)
+}
+
+type LoggingMiddleware struct{}
+
+func (m LoggingMiddleware) Handle(next http.Handler) http.Handler {
+	return handlers.LoggingHandler(os.Stdout, next)
 }
