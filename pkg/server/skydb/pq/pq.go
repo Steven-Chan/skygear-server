@@ -167,3 +167,7 @@ func init() {
 	skydb.Register("pq", skydb.DriverFunc(Open))
 	go dbInitializer()
 }
+
+func WarmUp() {
+	fmt.Println("Warming up pq")
+}

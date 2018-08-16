@@ -22,6 +22,8 @@ If env is `dev`, the following environment variable can also be set.
 
 This is list may not be the most updated, please see `/cmd/skynext-router/mode/config`.
 
+To demo using old skygear handler, please configure the skynext server as if skygear-server.
+
 #### Run the program
 
 Run `go run main.go`
@@ -46,3 +48,4 @@ This codebase is divided into the following parts:
 - Restrict the use of request context in middleware
 - Generate model getter and setter functions
 - Generate `http.handler` from a custom handler with life cycle (e.g. decode, validation, bussinuess logic, err handling, encode)
+- ~~Demo using old skygear handler in new structure with minimal effort~~

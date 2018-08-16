@@ -21,6 +21,10 @@ func header(i interface{}) http.Header {
 	}
 }
 
+func GetUserID(i interface{}) string {
+	return header(i).Get("X-Skygear-UserID")
+}
+
 func GetUsername(i interface{}) string {
 	return header(i).Get("X-Skygear-Username")
 }

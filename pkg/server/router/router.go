@@ -52,7 +52,7 @@ func NewRouter() *Router {
 			m: map[string]pipeline{},
 		},
 	}
-	r.commonRouter.payloadFunc = r.newPayload
+	r.commonRouter.payloadFunc = NewPayload
 	r.commonRouter.matchHandlerFunc = r.matchHandler
 	return r
 }
@@ -110,7 +110,7 @@ func (r *Router) matchHandler(p *Payload) (routeConfig, error) {
 	}, nil
 }
 
-func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
+func NewPayload(req *http.Request) (p *Payload, err error) {
 	reqBody := req.Body
 	if reqBody == nil {
 		reqBody = ioutil.NopCloser(bytes.NewReader(nil))
