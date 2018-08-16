@@ -61,12 +61,12 @@
   version = "v3.1.0"
 
 [[projects]]
-  digest = "1:55edab7be3f2d209e1c255c0ab01df5461d69c56f8d48b122c06e5bd4504a929"
+  digest = "1:d6b2b11e438ac3192f87dd1117ac16ee7ea57a43075a8e8b7dea5525d22bd001"
   name = "github.com/evalphobia/logrus_fluent"
   packages = ["."]
   pruneopts = ""
-  revision = "f27fe732e48aaf8dd7356a1bf0288790814469f7"
-  version = "v0.5.0"
+  revision = "76779e73f35d90f5a873e7feaf6691999b2c5db4"
+  version = "v0.4.0"
 
 [[projects]]
   digest = "1:a9ed1d8b070755631d246e0288dc5de6f19bd7b52baec5d515e7975a4c12dc8d"
