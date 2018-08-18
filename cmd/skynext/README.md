@@ -116,6 +116,29 @@ This codebase is divided into the following parts:
 
 ```
 
+#### Notes
+
+##### Skygear Next
+
+It is a bundle of packages of Middlewares, Request Modifiers and Services.
+
+The Middlewares conform the standard interface (or at least a very common pattern), `func(*http.Handler) *http.Handler`. Thus these packages can be used with other web framework or router, as long as it is compatible with `http.Handler`.
+
+The [skygear-server handler to Handler](/cmd/skynext/handler/handler.go) part shows how it can be made to be compatible with `http.Handler`.
+
+Skygear Next may also provide a web framework to allow better optimization.
+
+##### Request modifier (maybe not a good enough name)
+
+It provides an interface for the middleware and handler to access and modify the http request and response.
+
+For example,
+
+- middleware in gateway can inject request id in request and response header.
+- middleware can inject configuration to request header, and other middleware and handler later can access it from the request header. See [this](/cmd/skynext-router/model/config.go).
+
+It acts like the interface to pass through states across the request pipeline. Since gateway and the module are two separate server, the request modifier can only modify the http request (instead of the golang request context).
+
 ## TODO
 
 - ~~Demo using different golang web frameworks or router libraries~~
