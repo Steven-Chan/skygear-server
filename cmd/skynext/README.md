@@ -45,88 +45,107 @@ This codebase is divided into the following parts:
 ## Gateway + Next structure
 
 ```
-                                                                                                        HTTP Request
-                                                                                                        /{path}
-                                                                                                              +
-                                                                                                              |
-                                                                                                      +-------v-------+
-                                                                                                      |               |
-                                                                                                      |               |
-                                                                                                      |  Auth Module  |
-                                                                                                      |               |
-                                                                                                      |               |
-                                                                                                      +-------+-------+
-                                                                                                              |
-                                                            HTTP Request                                      |
-                                                            /{module}/{path}                                  |
-                                                                  +                                           |
-                                                                  |                                           |
-                                                          +-------v-------+                           +-------v-------+
-                                                          |               |                           |               |
-                                                          |               |                           |               |
-                                                          |    Gateway    |                           |    Router     |
-                                                          |               |                           |               |
-                                                          |               |                           |               |
-                                                          +-------+-------+                           +-------+-------+
-                                                                  |                                           |
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-|                                                                 |                                           |                                                                              |
-|                      Services                         Request   |                 Skygear Next              |        Request                          Services       Implementation        |
-|  Implementation      Interface                        Modifier  |                                           |        Modifier                         Interface      +---------------+     |
-|  +---------------+     +--+     +---------------+      +--+     |                                           |         +--+   +---------------+          +--+         |               |     |
-|  |               |     |  |     |               |      |  |     |                                           |         |  |   |               |          |  +-------->+               |     |
-|  |               +----->  +----->               +--------------->                                           +---------------->               +---------->  |         |   DB Conn     |     |
-|  |  XX Resource  |     |  |     |  Middleware   |      |  |     |                                           |         |  |   |  Middleware   |          |  <---------+   Provider    |     |
-|  |  Provider     <-----+  <-----+               <---------------+                                           <----------------+               <----------+  |         |               |     |
-|  |               |     |  |     |               |      |  |     |                                           |         |  |   |               |          |  |         +---------------+     |
-|  +---------------+     +--+     +---------------+      +--+     |                                           |         |  |   +---------------+          |  |         +---------------+     |
-|                                                                 |                                           |         |  |                              |  |         |               |     |
-|                                                                 |                                           |         |  |                              |  +-------->+               |     |
-|                                                                 |                                           |         |  |                              |  |         | Configuration |     |
-+--------------------------------------------------------------------------------------------------------+    |         |  |                              |  <---------+ Provider      |     |
-                                                                  |                                      |    |         |  |                              |  |         |               |     |
-                                                          +-------v-------+                              |    |         |  |                              |  |         +---------------+     |
-                                                          |               |                              |    |         |  |                              |  |         +---------------+     |
-                                                          |               |                              |    |         |  |           +------------------>  |         |               |     |
-                                                          | Revrese Proxy |                              |    |         |  |           |                  |  +-------->+               |     |
-                                                          | (path rewrite)|                              |    +------------------+     | +----------------+  |         |  XX Resource  |     |
-                                                          |               |                              |              |  |     |     | |                |  <---------+  Provider     |     |
-                                                          +-------+-------+                              |              |  |     |     | |                +^-+         |               |     |
-                                                                  |                                      |              +--+     |     | |                 |           +---------------+     |
-                                                                  |                                      |                       |     | |                 |                                 |
-                                            /auth/{path}          |/record/{path}          /cms/{path}   +-----------------------------------------------------------------------------------+
-                                           +----------------------------------------------+                                      |     | |                 |
-                          HTTP Request     |                      |                       |                                      |     | |                 |
-                                           |                      |                       |                                      +---------------------+   |
-                                  ------------------------------------------------------------------                             |     | |             |   |
-                                           |                      |                       |                                      |     | |             |   |
-                                           |/{path}               |/{path}                |/{path}                               |     | |     +----------------------------+ skygear-server handler
-                                           |                      |                       |                                      |     | |     |       |   |                | to
-                                           |                      |                       |                                 +----v-----+-v--+  |    +--v---v-----------+    | Handler
-                                   +-------v-------+      +-------v-------+       +-------v-------+                         |               |  |    |     Preprocessor |    |
-                                   |               |      |               |       |               |                         |  Handler      |  |    +--+---------------+    |
-                                   |               |      |               |       |               |                         |               |  |       |                    |
-                                   |  Auth Module  |      | Record Module |       |   CMS Module  |                         |  Businuess    |  |    +--v---------------+    |
-                                   |               |      |               |       |               |                         |  Logic        |  |    |     Handler      |    |
-                                   |               |      |               |       |               |                         +--------+------+  |    +--+---------------+    |
-                                   +---------------+      +---------------+       +---------------+                                  |         |       |                    |
-                                     localhost:3001         localhost:3002          localhost:3003                                   |         +----------------------------+
-                                                                                                                                     v                 v
-                                                                                                                               HTTP Response        HTTP Response
+                                                                               HTTP Request
+                                                                               /{module}/{path}
+                                                                                     +
+                                                                                     |
+                                                                                     |
+                                                                             +-------v-------+
+                                                                             |               |
+                                                                             |               |
+                                                                             |    Gateway    |
+                                                                             |               |
+                                                                             |               |
+                                                                             +-------+-------+
+                                                                                     |
+  Services                                                                           |
+  (through Dependency Injection)                                                     |
++--------------------------------+                                         Header    |      Body
+|                                |                                             +-----v-----+
+|  Implementation     Interface  |                                 Request     |           |
+|  +---------------+     +--+    |                                 Modifier    |           |
+|  |               |     |  |    |                                  +--+       |           |
+|  |               |     |  |    |  Function  +---------------+     |  |       |           |
+|  | Configuration |     |  |    |  call      |               |     |  |Read   |           |
+|  | Provider      |     |  <-----------------+               <-----+  <-------+           |
+|  |               |     |  |    |            | Middleware(s) |     |  |       |           |
+|  +---------------+     |  +----------------->               +----->  +------->           |
+|                        |  |    |            |               |     |  |Write  |           |
+|  +---------------+     |  |    |            +---------------+     |  |       |           |
+|  |               |     |  |    |                                  +--+       |           |
+|  |               |     |  |    |                                           +-v-----------v-+
+|  |  XX Resource  |     |  |    |                                           |               | /record/{path}
+|  |  Provider     |     |  |    |                                           |               +---------->
+|  |               |     |  |    |                                           | Reverse Proxy | /cms/{path}
+|  +---------------+     +--+    |                                           | (path rewrite)+---------->
+|                                |                                           |               |
++--------------------------------+                                           +---------------+
+                                                                                     |/auth/{path}
+                                                                    +-------------------------------------+
+                                                                                     |
+                                                                                     |
+                                                                    HTTP Request     |
+                                                                                     |
+                                                                                     |
+                                                                    +-------------------------------------+
+                                                                                     |/{path}
+                                                                             +-------v-------+
+                                                                             |               |
+                                                                             |               |
+                                                                             |  Auth Module  |
+                                                                             |               |
+                                                                             |               |
+                                                                             +-------+-------+
+                                                                                     |
+                                                                                     |
+                                                                                     |
+                                                                                     |
+                                                                             +-------v-------+
+                                                                             |               | /signup
+                                                                             |               +---------->
+                                                                             |  App Router   | /logout
+                                                                             |               +---------->
+                                                                             |               |
+                                                                             +---------------+
+                                                                                     |/login
+  Services                                                                           |
+  (through Dependency Injection)                                                     |
++--------------------------------+                                         Header    |      Body
+|                                |                                             +-----+-----+
+|  Implementation     Interface  |                                 Request     |           |
+|  +---------------+     +--+    |                                 Modifier    |           |
+|  |               |     |  |    |                                  +--+       |           |
+|  |               |     |  |    |  Function  +---------------+     |  |       |           |
+|  |   DB Conn     |     |  |    |  call      |               |     |  |Read   |           |
+|  |   Provider    |     |  <-----------------+               <-----+  <-------+           |
+|  |               |     |  |    |            | Middleware(s) |     |  |       |           |
+|  +---------------+     |  +----------------->               +----->  +------->           |
+|                        |  |    |            |               |     |  |Write  |           |
+|                        |  |    |            +---------------+     |  |       |           |
+|                        |  |    |                                  |  |       |           |
+|                        |  |    |                                  |  |       |           |
+|                        |  |    |                            +-----+  <-------+           |
+|                        |  |    |                            |     |  |Read               |
+|                        |  |    |                            |     |  |                   |
+|                        |  |    |                            |     |  |                   |
+|                        |  |    |                            |     +--+                   |
+|  +---------------+     |  |    |                            |                            |
+|  |               |     |  |    |                       +----v----------------------------v------+
+|  |               |     |  |    |                       |                                        |
+|  |  XX Resource  |     |  <----------------------------+                                        |
+|  |  Provider     |     |  |    |     Function call     |              Login Handler             |
+|  |               |     |  +---------------------------->                                        |
+|  +---------------+     +--+    |                       |                                        |
+|                                |                       +--------------------+-------------------+
++--------------------------------+                                            |
+                                                                              |
+                                                                              |
+                                                                              v
+                                                                        HTTP Response
 
 ```
 
 #### Notes
-
-##### Skygear Next
-
-It is a bundle of packages of Middlewares, Request Modifiers and Services.
-
-The Middlewares conform the standard interface (or at least a very common pattern), `func(*http.Handler) *http.Handler`. Thus these packages can be used with other web framework or router, as long as it is compatible with `http.Handler`.
-
-The [skygear-server handler to Handler](/cmd/skynext/handler/handler.go) part shows how it can be made to be compatible with `http.Handler`.
-
-Skygear Next may also provide a web framework to allow better optimization.
 
 ##### Request modifier (maybe not a good enough name)
 
