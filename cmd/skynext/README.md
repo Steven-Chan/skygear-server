@@ -165,36 +165,50 @@ It acts like the interface to pass through states across the request pipeline. S
 #### (The good old) Single-tenant version
 
 ```golang
-type AMiddlware struct {
-  TokenStore service.token `inject:"TokenStore"`
+type AHandler struct {
+  TokenStore TokenStore `inject:"TokenStore"`
 }
 
 type TokenStore interface {
   Get(tokenString string) Token
 }
 
-func (m AMiddlware) Handle(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    tokenStore := m.TokenStore
-    token := tokenStore.Get(GetTokenString(r))
+// 1. In main.go
+func main() {
+  configuration := GetConfigurationFromEnv()
 
-    // .....
+  serveMux := http.NewServeMux()
 
-    next.ServeHTTP(w, r)
-  }
+  // 1.1 prepare handler
+  handler := AHandler{}
+
+  // 1.2 prepare dependency (use a DI library in real world)
+  tokenStore := NewTokenStore(configuration)
+
+  // 1.3 inject dependency (use a DI library in real world)
+  handler.TokenStore = tokenStore
+
+  // 1.4 register handler to a route
+  // 1.5 start http server
+}
+
+// 2. in handler/a.go, using TokenStore in AHandler
+func (h AHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  tokenStore := h.TokenStore
+  token := tokenStore.Get(GetTokenString(r))
+
+  // .....
 }
 ```
 
 #### Mutli-tenant version
 
 ```golang
-type AMiddleware struct {
-  TokenStoreProvider service.token `inject:"TokenStoreProvider"`
+type AHandler struct {
+  TokenStoreProvider TokenStoreProvider `inject:"TokenStoreProvider"`
 }
 
 type TokenStoreProvider interface {
-  GetStore(impl string, secret string) TokenStore
-  // OR
   GetStore(config Configuration) TokenStore
 }
 
@@ -202,72 +216,109 @@ type TokenStore interface {
   Get(tokenString string) Token
 }
 
-func (m AMiddlware) Handle(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    tokenStoreImpl := GetTokenStoreImpl(r)
-    tokenStoreSecret := GetTokenStoreSecret(r)
+// 1. In main.go
+func main() {
+  configuration := GetConfigurationFromEnv()
 
-    tokenStore := m.TokenStoreProvider.GetStore(tokenStoreImpl, tokenStoreSecret)
-    token := tokenStore.Get(GetTokenString(r))
+  serveMux := http.NewServeMux()
 
-    // .....
+  // 1.1 prepare handler
+  handler := AHandler{}
 
-    next.ServeHTTP(w, r)
-  }
+  // 1.2 prepare dependency (use a DI library in real world)
+  tokenStoreProvider := NewTokenStoreProvider()
+
+  // 1.3 inject dependency (use a DI library in real world)
+  handler.TokenStore = tokenStore
+
+  // 1.4 register handler to a route
+  // 1.5 start http server
+}
+
+// 2. in handler/a.go, using TokenStore in AHandler
+func (m AHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  // 2.1 get configuration associated with current request
+  configuration := GetConfiguration(r)
+
+  // 2.2 create a token store with the configuration
+  tokenStore := m.TokenStoreProvider.GetStore(configuration)
+
+  token := tokenStore.Get(GetTokenString(r))
+
+  // ...
 }
 ```
 
 Pros:
 
-- Inject once when server start
+- Inject once when server start, in the `main.go`, its very similar to single-tenant version
 
 Problems:
 
-- The complexity of handling tenants goes to each middleware and handler
+- An extra layer of abstraction (i.e. TokenStoreProvider) for creating the tenancy-unaware depedency (i.e. TokenStore) is introduced in each middleware and handler,
 
 #### Multi-tenant version (with request context)
 
 ```golang
-type AMiddleware struct {}
+type AHandler struct {}
+
+type TokenStoreProvider interface {
+  GetStore(config Configuration) TokenStore
+}
 
 type TokenStore interface {
   Get(tokenString string) Token
 }
 
-func GetTokenStore(r *http.Request) *TokenStore {
-  return r.Context().Value("TokenStore").(*TokenStore)
-}
+// 1. In main.go
+func main() {
+  serveMux := http.NewServeMux()
 
-func (m AMiddlware) Handle(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    tokenStore := GetTokenStore(r)
-    token := tokenStore.Get(GetTokenString(r))
-
-    // .....
-
-    next.ServeHTTP(w, r)
+  // 1.1 prepare handler and middleware
+  handler := AHandler{}
+  configMiddleware := ConfigurationMiddleware{}
+  diMiddleware := DIMiddleware{
+    TokenStoreProvider: TokenStoreProvider{},
   }
+  otherMiddleware := XXXMiddleware{}
+
+  // 1.2 wrap the handler with middleware
+  // note: the configMiddleware and diMiddleware must come first
+  wrappedHandler := configMiddleware.Handle(diMiddleware.Handle(otherMiddleware.Handle(handler)))
+
+  // 1.3 register the handler to a route
+  // 1.4 start http server
 }
 
-// When do we prepare the dependency?
-// We will have to run the following middleware before all
-type DIMiddleware struct {}
+type DIMiddleware struct {
+  TokenStoreProvider TokenStoreProvider
+}
 
-func NewTokenStore(config Configuration) TokenStore { /* ... */ }
-func SetTokenStore(r *http.Request, ts *TokenStore) { /* ... */ }
-
+// 2. inject dependency in the middleware
 func (m DIMiddleware) Handle(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    // 2.1 get configuration from the request
     configuration := GetConfiguration(r)
 
-    tokenStore := NewTokenStore(configuration)
+    // 2.2 create a dependency instance with the configuration
+    tokenStore := m.TokenStoreProvider.GetStore(configuration)
+
+    // 2.3 set the depedenecy instance in the request
     SetTokenStore(r, tokenStore)
 
-    // Inject other dependencies here
+    // inject other dependencies here
     // ...
 
     next.ServeHTTP(w, r)
   }
+}
+
+// 3. in handler/a.go, using TokenStore in AHandler
+func (m AHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  tokenStore := GetTokenStore(r)
+  token := tokenStore.Get(GetTokenString(r))
+
+  // ...
 }
 ```
 
@@ -285,37 +336,71 @@ Problems:
 The following may solve the second problem metioned above.
 
 ```golang
-type AMiddleware struct {}
+type AHandler struct {}
 
-type AMiddlewareDependency struct {
+// define the dependencies required by A
+type AHandlerDependency struct {
   TokenStore service.token `inject:"TokenStore"`
 }
 
-func InjectDependency(r *http.Request, dep interface{}) {
-  dependencyGraph := r.Context().Value("DependencyGraph").(*DependencyGraph)
-  dependencyGraph.Provide(dep)
-  dependencyGraph.Populate()
+// 1. In main.go (same as previous version)
+func main() {
+  serveMux := http.NewServeMux()
+
+  // 1.1 prepare handler and middleware
+  handler := AHandler{}
+  configMiddleware := ConfigurationMiddleware{}
+  diMiddleware := DIMiddleware{
+    TokenStoreProvider: TokenStoreProvider{},
+  }
+  otherMiddleware := XXXMiddleware{}
+
+  // 1.2 wrap the handler with middleware
+  // note: the configMiddleware and diMiddleware must come first
+  wrappedHandler := configMiddleware.Handle(diMiddleware.Handle(otherMiddleware.Handle(handler)))
+
+  // 1.3 register the handler to a route
+  // 1.4 start http server
 }
 
-func (m AMiddlware) Handle(next http.Handler) http.Handler {
+type DIMiddleware struct {
+  TokenStoreProvider TokenStoreProvider
+}
+
+// 2. inject dependency in the middleware (same as previous version)
+func (m DIMiddleware) Handle(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    dep := AMiddlewareDependency{}
-    InjectDependency(r, &dep)
+    // 2.1 get configuration from the request
+    configuration := GetConfiguration(r)
 
-    // Use the dependency
-    token := dep.tokenStore.Get(GetTokenString(r))
+    // 2.2 create a dependency instance with the configuration
+    tokenStore := m.TokenStoreProvider.GetStore(configuration)
 
+    // 2.3 set the depedenecy instance in the request
+    SetTokenStore(r, tokenStore)
+
+    // inject other dependencies here
     // ...
 
     next.ServeHTTP(w, r)
   }
 }
 
-// When do we prepare the dependency?
-// We will have to run the following middleware before all
-type DIMiddleware struct {}
+// 3. in handler/a.go, inject dependency required by AHandler and use it in AHandler
+func (m AHandler) Handle(w http.ResponseWriter, r *http.Request) {
+  // 3.1 create an empty dependency struct
+  dep := AHandlerDependency{}
 
-/* Similar to the previous one, but set to a single key "DependencyGraph" */
+  // 3.2 inject dependecies (associate with the request) to the struct
+  InjectDependency(r, &dep)
+
+  token := dep.tokenStore.Get(GetTokenString(r))
+
+  // ...
+}
+
+// note: this function can be used in any middlewares and handlers
+func InjectDependency(h *http.Request, dep interface{}) { /* ... */ }
 ```
 
 ## TODO
