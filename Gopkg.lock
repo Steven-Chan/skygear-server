@@ -197,6 +197,14 @@
   revision = "4442edb3db31196622da56482fd8d0fa375fba4d"
 
 [[projects]]
+  digest = "1:ca5c90960520407749b98c49650f54f5f90a667796e85c5ee1597478f702fb91"
+  name = "github.com/jessevdk/go-flags"
+  packages = ["."]
+  pruneopts = ""
+  revision = "c6ca198ec95c841fdb89fc0de7496fed11ab854e"
+  version = "v1.4.0"
+
+[[projects]]
   digest = "1:e6f0b9e4dced4b6b5fedb810e2125a9f74dfe2ef1598c55ecb25e8b3d8f514ea"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
@@ -542,6 +550,7 @@
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/jarcoal/httpmock",
+    "github.com/jessevdk/go-flags",
     "github.com/jmoiron/sqlx",
     "github.com/joho/godotenv",
     "github.com/julienschmidt/httprouter",

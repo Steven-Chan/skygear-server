@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+//go:generate go run generate/main.go -path=$GOFILE
+
+// @getter header,context
+// @setter header,context
 type User struct {
 	Username string `json:"name"`
 	Age      int    `json:"age"`
