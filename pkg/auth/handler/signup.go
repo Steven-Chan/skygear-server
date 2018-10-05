@@ -42,11 +42,9 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) handler.Handler 
 }
 
 type SignupRequestPayload struct {
-	AuthData         map[string]interface{} `json:"auth_data"`
-	Password         string                 `json:"password"`
-	Provider         string                 `json:"provider"`
-	ProviderAuthData map[string]interface{} `json:"provider_auth_data"`
-	RawProfile       map[string]interface{} `json:"profile"`
+	AuthData   map[string]interface{} `json:"auth_data"`
+	Password   string                 `json:"password"`
+	RawProfile map[string]interface{} `json:"profile"`
 }
 
 func (p SignupRequestPayload) Validate() error {
@@ -58,7 +56,7 @@ func (p SignupRequestPayload) Validate() error {
 }
 
 func (p SignupRequestPayload) isAnonymous() bool {
-	return len(p.AuthData) == 0 && p.Password == "" && p.Provider == ""
+	return len(p.AuthData) == 0 && p.Password == ""
 }
 
 // SignupHandler handles signup request
@@ -133,8 +131,6 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 
 	if payload.isAnonymous() {
 		panic("Unsupported signup anonymously")
-	} else if payload.Provider != "" {
-		panic("Unsupported signup with provider")
 	} else {
 		principal.UserID = info.ID
 		principal.AuthData = payload.AuthData
