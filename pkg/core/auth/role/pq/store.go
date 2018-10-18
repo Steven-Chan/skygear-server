@@ -109,3 +109,8 @@ func (s RoleStore) getRolesByType(rtype roleType) ([]string, error) {
 	}
 	return roles, nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ role.Store = &RoleStore{}
+)
