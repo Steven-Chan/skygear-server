@@ -414,6 +414,7 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID record.ID, authInfo *authinf
 // 3. Clean up some transport only data (sequence for example) away from record
 // 4. Populate meta data and save the record (like updated_at/by)
 // 5. Execute after save hooks with original record and new record
+// nolint: gocyclo
 func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (err error) {
 	records := req.RecordsToSave
 
