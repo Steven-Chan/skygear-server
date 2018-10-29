@@ -1,6 +1,7 @@
 package skyerr
 
 import (
+	"fmt"
 	"runtime/debug"
 
 	"github.com/sirupsen/logrus"
@@ -8,6 +9,7 @@ import (
 )
 
 func ErrorFromRecoveringPanic(r interface{}) skyerr.Error {
+	fmt.Printf("%+v\n", r)
 	switch err := r.(type) {
 	case skyerr.Error:
 		return err
