@@ -525,11 +525,7 @@ func NewRecordResultFilter(
 	)
 
 	if !bypassAccessControl {
-		err = db.WithTx(txContext, func() (doErr error) {
-			acl, doErr = recordStore.GetRecordFieldAccess()
-			return
-		})
-
+		acl, err = recordStore.GetRecordFieldAccess()
 		if err != nil {
 			return RecordResultFilter{}, err
 		}
