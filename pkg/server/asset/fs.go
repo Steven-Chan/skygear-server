@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -129,7 +130,7 @@ func (s *fileStore) GeneratePostFileRequest(name string, contentType string, len
 // SignedURL returns a signed url with expiry date
 func (s *fileStore) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
-		return fmt.Sprintf("%s/%s", s.prefix, name), nil
+		return fmt.Sprintf("%s/%s", s.prefix, url.PathEscape(name)), nil
 	}
 
 	expiredAt := time.Now().Add(time.Minute * time.Duration(15))
@@ -146,7 +147,7 @@ func (s *fileStore) SignedURL(name string) (string, error) {
 
 	return fmt.Sprintf(
 		"%s/%s?expiredAt=%s&signature=%s",
-		s.prefix, name, expiredAtStr, buf.String(),
+		s.prefix, url.PathEscape(name), expiredAtStr, buf.String(),
 	), nil
 }
 
