@@ -1,3 +1,9 @@
+# 1.7.2 (2019-03-04)
+
+### Bug Fixes
+
+- Fix fail to start server docker image with plugin that use zmq transport #896
+
 ## 1.7.1 (2019-02-22)
 
 ### Bug Fixes
