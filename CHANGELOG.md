@@ -1,3 +1,10 @@
+# 1.7.3 (2019-07-05)
+
+### Bug Fixes
+
+- Allow signup with restricted user record
+- Deny any access if ACL is empty but not null
+
 # 1.7.2 (2019-03-04)
 
 ### Bug Fixes
